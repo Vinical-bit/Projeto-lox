@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LOX · Assistente Pessoal</title>
+<style>
+/* ══════════════════════ BASE ══════════════════════ */
+:root{
+  --c1:#2dd4ff;            /* azul reator */
+  --c1-dim:rgba(45,212,255,.35);
+  --c1-soft:rgba(45,212,255,.10);
+  --violet:#8b7cff;
+  --bg:#04070d;
+  --bg2:#080d17;
+  --panel:rgba(10,16,28,.72);
+  --line:rgba(45,212,255,.18);
+  --txt:#dbe6f2;
+  --mute:#7c8ba0;
+  --ok:#10b981;
+  --err:#ff5547;
+  --mono:ui-monospace,"SF Mono",SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;
+  --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  background:
+    radial-gradient(1100px 700px at 50% -10%,rgba(45,212,255,.10),transparent 60%),
+    radial-gradient(900px 600px at 90% 110%,rgba(139,124,255,.09),transparent 60%),
+    var(--bg);
+  color:var(--txt);font-family:var(--sans);
+  overflow-x:hidden;
+}
+body::before{ /* scanlines sci-fi */
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:9;
+  background:repeating-linear-gradient(0deg,rgba(255,255,255,.018) 0 1px,transparent 1px 3px);
+  mix-blend-mode:overlay;
+}
+
+/* ══════════════════════ TELA 1 — BOOT ══════════════════════ */
+.screen{
+  position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:22px;padding:24px;text-align:center;
+  background:
+    radial-gradient(700px 500px at 50% 45%,rgba(45,212,255,.10),transparent 65%),
+    var(--bg);
+  transition:opacity .7s ease,visibility .7s ease;
+}
+.screen.hide{opacity:0;visibility:hidden;pointer-events:none}
+.brand{
+  font-family:var(--mono);font-weight:800;
+  font-size:clamp(48px,17vw,148px);line-height:.95;letter-spacing:.16em;
+  text-indent:.16em;
+  background:linear-gradient(100deg,var(--c1) 0%,#7fe6ff 35%,var(--violet) 100%);
+  -webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(45,212,255,.35));
+}
+.rule{
+  width:min(420px,78vw);height:2px;border:0;border-radius:2px;
+  background:linear-gradient(90deg,transparent,var(--c1),var(--violet),transparent);
+  box-shadow:0 0 18px rgba(45,212,255,.45);
+}
+.sync{
+  font-family:var(--mono);font-size:clamp(11px,2.6vw,14px);letter-spacing:.32em;
+  color:var(--c1);animation:blink 1.05s steps(1,end) infinite;
+}
+@keyframes blink{0%,49%{opacity:1}50%,100%{opacity:.12}}
+.ver{font-family:var(--mono);font-size:11px;letter-spacing:.3em;color:var(--mute)}
+
+/* ══════════════════════ TELA 2 — ATIVAÇÃO ══════════════════════ */
+#gate{z-index:99}
+.btn-boot{
+  font-family:var(--mono);font-size:clamp(13px,3.4vw,16px);letter-spacing:.22em;
+  color:#03121a;font-weight:800;cursor:pointer;
+  padding:18px 40px;border:0;border-radius:999px;
+  background:linear-gradient(100deg,var(--c1),var(--violet));
+  box-shadow:0 0 34px rgba(45,212,255,.45),inset 0 0 0 1px rgba(255,255,255,.18);
+  transition:transform .18s ease,box-shadow .18s ease;
+  animation:bootpulse 2.6s ease-in-out infinite;
+}
+.btn-boot:hover{transform:translateY(-2px) scale(1.03);box-shadow:0 0 54px rgba(45,212,255,.65)}
+.btn-boot:active{transform:scale(.97)}
+@keyframes bootpulse{0%,100%{box-shadow:0 0 30px rgba(45,212,255,.35)}50%{box-shadow:0 0 58px rgba(139,124,255,.55)}}
+
+/* ══════════════════════ APP ══════════════════════ */
+#app{display:none;max-width:1080px;margin:0 auto;padding:14px 16px 60px}
+#app.on{display:block;animation:fadein .8s ease both}
+@keyframes fadein{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+.keybar{
+  display:flex;gap:8px;align-items:center;flex-wrap:wrap;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;
+  padding:10px 12px;backdrop-filter:blur(8px);
+}
+.keybar label{font-family:var(--mono);font-size:10px;letter-spacing:.18em;color:var(--mute);white-space:nowrap}
+.keybar input{
+  flex:1 1 220px;min-width:0;background:rgba(0,0,0,.45);border:1px solid var(--line);
+  border-radius:9px;color:var(--txt);font-family:var(--mono);font-size:12px;padding:9px 11px;outline:none;
+}
+.keybar input:focus{border-color:var(--c1);box-shadow:0 0 0 3px var(--c1-soft)}
+.keybar button{
+  background:var(--c1-soft);border:1px solid var(--line);color:var(--c1);
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;padding:9px 14px;border-radius:9px;cursor:pointer;
+}
+.keybar button:hover{background:rgba(45,212,255,.2)}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--err);box-shadow:0 0 10px currentColor;flex:0 0 auto}
+.dot.ok{background:var(--ok)}
+
+/* ── orbe ── */
+.stage{display:flex;flex-direction:column;align-items:center;padding:26px 0 8px}
+.orb-wrap{position:relative;width:min(290px,64vw);aspect-ratio:1;cursor:pointer;user-select:none}
+.ring{
+  position:absolute;inset:0;border-radius:50%;border:1px solid var(--c1-dim);
+  animation:spin 16s linear infinite;
+}
+.ring:nth-child(2){inset:9%;border-style:dashed;border-color:rgba(139,124,255,.32);animation-duration:11s;animation-direction:reverse}
+.ring:nth-child(3){inset:19%;border-color:rgba(45,212,255,.14);animation-duration:24s}
+@keyframes spin{to{transform:rotate(360deg)}}
+.core{
+  position:absolute;inset:29%;border-radius:50%;
+  background:radial-gradient(circle at 35% 32%,#eafcff,var(--c1) 42%,#0b6f96 74%,#062432 100%);
+  box-shadow:0 0 46px var(--c1),0 0 110px rgba(45,212,255,.4),inset 0 0 26px rgba(255,255,255,.35);
+  animation:idle 3.4s ease-in-out infinite;
+}
+@keyframes idle{0%,100%{transform:scale(1);opacity:.9}50%{transform:scale(1.06);opacity:1}}
+@keyframes thinking{0%,100%{transform:scale(.94);opacity:.75}50%{transform:scale(1.12);opacity:1}}
+.wave{position:absolute;inset:26%;border-radius:50%;border:2px solid var(--c1);opacity:0}
+.orb-wrap.listening .wave,.orb-wrap.speaking .wave{animation:wave 1.9s ease-out infinite}
+.orb-wrap.listening .wave:nth-of-type(2),.orb-wrap.speaking .wave:nth-of-type(2){animation-delay:.63s}
+.orb-wrap.listening .wave:nth-of-type(3),.orb-wrap.speaking .wave:nth-of-type(3){animation-delay:1.26s}
+.orb-wrap.speaking .wave{border-color:var(--violet);animation-duration:2.6s}
+@keyframes wave{0%{transform:scale(1);opacity:.7}100%{transform:scale(1.75);opacity:0}}
+.orb-wrap.thinking .core{animation:thinking .62s ease-in-out infinite}
+.orb-wrap.speaking .core{background:radial-gradient(circle at 35% 32%,#f3efff,var(--violet) 45%,#3b2f8f 76%,#100a2b 100%);box-shadow:0 0 46px var(--violet),0 0 110px rgba(139,124,255,.4)}
+
+.name{
+  font-family:var(--mono);font-size:clamp(24px,6.4vw,40px);font-weight:800;letter-spacing:.3em;
+  text-indent:.3em;margin-top:20px;
+  background:linear-gradient(100deg,var(--c1),var(--violet));
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:transparent;
+}
+.status{font-family:var(--mono);font-size:11px;letter-spacing:.24em;color:var(--mute);margin-top:8px;min-height:15px;text-align:center}
+.status.live{color:var(--c1)}
+.status.bad{color:var(--err)}
+
+.dialog{width:100%;max-width:700px;margin:20px auto 0;display:flex;flex-direction:column;gap:9px}
+.bubble{
+  background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 16px;
+  font-size:15px;line-height:1.55;backdrop-filter:blur(8px);
+}
+.bubble .who{font-family:var(--mono);font-size:9px;letter-spacing:.24em;color:var(--mute);display:block;margin-bottom:5px}
+.bubble.me{border-color:rgba(139,124,255,.28);background:rgba(139,124,255,.07)}
+.bubble.me .who{color:var(--violet)}
+.bubble.it .who{color:var(--c1)}
+
+.controls{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;margin-top:16px}
+.ctrl{
+  font-family:var(--mono);font-size:11px;letter-spacing:.14em;cursor:pointer;
+  background:var(--c1-soft);border:1px solid var(--line);color:var(--c1);
+  padding:11px 18px;border-radius:999px;transition:.16s;
+}
+.ctrl:hover{background:rgba(45,212,255,.2);transform:translateY(-1px)}
+.ctrl.warn{background:rgba(255,85,71,.1);border-color:rgba(255,85,71,.3);color:var(--err)}
+.ctrl.warn:hover{background:rgba(255,85,71,.2)}
+.typebar{width:100%;max-width:700px;margin:14px auto 0;display:flex}
+.typebar input{
+  width:100%;background:rgba(0,0,0,.42);border:1px solid var(--line);border-radius:999px;
+  color:var(--txt);font-family:var(--sans);font-size:14px;padding:13px 20px;outline:none;
+}
+.typebar input:focus{border-color:var(--c1);box-shadow:0 0 0 3px var(--c1-soft)}
+
+/* ══════════════════════ SECOND BRAIN ══════════════════════ */
+.brain{margin-top:38px;background:var(--panel);border:1px solid var(--line);border-radius:18px;overflow:hidden;backdrop-filter:blur(8px)}
+.brain-top{
+  display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  padding:14px 16px;border-bottom:1px solid var(--line);
+  background:linear-gradient(90deg,rgba(139,124,255,.10),rgba(45,212,255,.05));
+}
+.brain-ttl{font-family:var(--mono);font-size:13px;letter-spacing:.2em;color:var(--txt);font-weight:700}
+.brain-sub{font-size:11px;color:var(--mute);flex:1 1 160px;min-width:0}
+.brain-count{font-family:var(--mono);font-size:11px;color:var(--violet);letter-spacing:.1em;white-space:nowrap}
+.mini{
+  width:30px;height:30px;flex:0 0 auto;border-radius:9px;cursor:pointer;font-size:14px;line-height:1;
+  background:var(--c1-soft);border:1px solid var(--line);color:var(--c1);
+}
+.mini:hover{background:rgba(45,212,255,.22)}
+#graph{width:100%;overflow-x:auto;overflow-y:hidden;padding:6px 0 0}
+#graph svg{display:block;width:100%;min-width:640px;height:auto}
+.gnode{cursor:pointer}
+.gnode:hover .ncore{stroke:#fff;stroke-width:2.4}
+@keyframes breathe{0%,100%{opacity:.55;transform:scale(1)}50%{opacity:.12;transform:scale(1.32)}}
+@keyframes corepulse{0%,100%{opacity:.9;transform:scale(1)}50%{opacity:1;transform:scale(1.07)}}
+@keyframes dashmove{to{stroke-dashoffset:-260}}
+@keyframes flash{0%,100%{opacity:1}18%{opacity:.15}36%{opacity:1}54%{opacity:.15}72%{opacity:1}}
+.gnode.flash{animation:flash 1.5s ease-in-out 1}
+.legend{display:flex;gap:8px 16px;flex-wrap:wrap;align-items:center;padding:12px 16px 15px;border-top:1px solid var(--line)}
+.lg{display:flex;align-items:center;gap:6px;font-family:var(--mono);font-size:10px;letter-spacing:.1em;color:var(--mute)}
+.lg i{width:9px;height:9px;border-radius:50%;display:inline-block;box-shadow:0 0 8px currentColor}
+.lg-ok{margin-left:auto;color:var(--ok);font-family:var(--mono);font-size:10px;letter-spacing:.06em}
+
+/* ── editor de nota ── */
+#modal{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(2,5,10,.82);backdrop-filter:blur(5px)}
+#modal.on{display:flex}
+.card{width:min(470px,100%);background:var(--bg2);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:0 24px 70px rgba(0,0,0,.7)}
+.card h3{font-family:var(--mono);font-size:12px;letter-spacing:.22em;color:var(--c1);margin-bottom:16px;font-weight:700}
+.fld{margin-bottom:13px}
+.fld span{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.2em;color:var(--mute);margin-bottom:6px}
+.fld input,.fld select,.fld textarea{
+  width:100%;background:rgba(0,0,0,.42);border:1px solid var(--line);border-radius:9px;
+  color:var(--txt);font-family:var(--sans);font-size:14px;padding:10px 12px;outline:none;
+}
+.fld textarea{min-height:110px;resize:vertical;line-height:1.5}
+.fld input:focus,.fld select:focus,.fld textarea:focus{border-color:var(--c1);box-shadow:0 0 0 3px var(--c1-soft)}
+.card-btns{display:flex;gap:8px;margin-top:6px;flex-wrap:wrap}
+.card-btns .ctrl{flex:1 1 auto;text-align:center}
+
+@media(max-width:560px){
+  #app{padding:10px 11px 50px}
+  .bubble{font-size:14px}
+  .brain-sub{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- ═══════ TELA 1 — BOOT ═══════ -->
+<div class="screen" id="boot">
+  <div class="brand">LOX</div>
+  <hr class="rule">
+  <div class="sync">SINCRONIZANDO DADOS...</div>
+  <div class="ver">v5.0 · REBUILD</div>
+</div>
+
+<!-- ═══════ TELA 2 — ATIVAÇÃO ═══════ -->
+<div class="screen hide" id="gate">
+  <div class="brand">LOX</div>
+  <hr class="rule">
+  <button class="btn-boot" id="btnGo">&#9658; ATIVAR SISTEMA</button>
+  <div class="ver">CLIQUE PARA INICIAR</div>
+</div>
+
+<!-- ═══════ APP ═══════ -->
+<main id="app">
+
+  <div class="keybar">
+    <span class="dot" id="keyDot"></span>
+    <label for="key">API KEY</label>
+    <input id="key" type="password" placeholder="sk-ant-... (cole aqui, fica salva neste navegador)" autocomplete="off" spellcheck="false">
+    <button id="btnKey">SALVAR</button>
+  </div>
+
+  <div class="stage">
+    <div class="orb-wrap" id="orb" title="Clique para falar">
+      <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+      <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+      <div class="core"></div>
+    </div>
+    <div class="name">LOX</div>
+    <div class="status" id="status">INICIANDO...</div>
+
+    <div class="dialog">
+      <div class="bubble me"><span class="who">VINICAL</span><span id="uText">—</span></div>
+      <div class="bubble it"><span class="who">LOX</span><span id="aText">—</span></div>
+    </div>
+
+    <div class="controls">
+      <button class="ctrl" id="btnMic">&#127908; FALAR</button>
+      <button class="ctrl warn" id="btnStop">&#9632; INTERROMPER</button>
+    </div>
+
+    <form class="typebar" id="typeForm" autocomplete="off">
+      <input id="typeIn" placeholder="ou digite e tecle Enter">
+    </form>
+  </div>
+
+  <!-- ═══════ SECOND BRAIN ═══════ -->
+  <section class="brain">
+    <div class="brain-top">
+      <span class="brain-ttl">&#129504; SECOND BRAIN</span>
+      <span class="brain-sub">rede de contexto viva &middot; injetada em todo comando</span>
+      <span class="brain-count" id="count">0 notas &middot; 0 áreas</span>
+      <button class="mini" id="btnAdd" title="Nova nota">+</button>
+      <button class="mini" id="btnReload" title="Recarregar grafo">&#8635;</button>
+    </div>
+    <div id="graph"></div>
+    <div class="legend" id="legend"></div>
+  </section>
+</main>
+
+<!-- ═══════ EDITOR DE NOTA ═══════ -->
+<div id="modal">
+  <div class="card">
+    <h3 id="mTtl">EDITAR NOTA</h3>
+    <div class="fld"><span>TÍTULO</span><input id="mTitle" maxlength="40" placeholder="1-2 palavras"></div>
+    <div class="fld"><span>ÁREA</span><select id="mArea"></select></div>
+    <div class="fld"><span>CONTEÚDO</span><textarea id="mBody" placeholder="o que o Lox deve saber"></textarea></div>
+    <div class="card-btns">
+      <button class="ctrl" id="mSave">SALVAR</button>
+      <button class="ctrl" id="mCancel">CANCELAR</button>
+      <button class="ctrl warn" id="mDel">EXCLUIR</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* ══════════════════════════════════════════════════════════
+   CONFIG — respostas da entrevista
+   ══════════════════════════════════════════════════════════ */
+const CONFIG = {
+  name:        "Lox",
+  address:     "Vinical",
+  themeColor:  "#2dd4ff",          // azul reator
+  persona:     "formal britânico com sarcasmo seco",
+  wakeWord:    "ei lox",           // minúsculo, sem acento
+  voiceGender: "masculina",
+  model:       "claude-sonnet-5"
+};
+
+/* Áreas → rótulo + cor fixa */
+const AREA = {
+  metas:       { label:"Metas",       color:"#fbbf24" },
+  trabalho:    { label:"Carreira",    color:"#ff5547" },
+  projetos:    { label:"Projetos",    color:"#8b7cff" },
+  financas:    { label:"Finanças",    color:"#f7931a" },
+  aprendizado: { label:"Aprendizado", color:"#2dd4ff" },
+  saude:       { label:"Saúde",       color:"#10b981" },
+  relacoes:    { label:"Relações",    color:"#ec4899" },
+  meta:        { label:"Meta",        color:"#8a90a6" }
+};
+
+/* Notas colhidas na entrevista */
+const SEED_NOTES = [
+  { id:"perfil",      area:"meta",        title:"Perfil",       body:"Vinical, 19 anos, estudante de Engenharia de Software. Natural de Recife, morando em São Paulo." },
+  { id:"foco",        area:"meta",        title:"Foco Técnico", body:"Foco técnico mais forte em desenvolvimento de software e cibersegurança." },
+  { id:"interesses",  area:"meta",        title:"Interesses",   body:"Empreendedorismo, criação de conteúdo e crescimento em redes sociais." },
+  { id:"metodo",      area:"meta",        title:"Método",       body:"Prefere planejamento estruturado e ciclos de foco e descanso para estudar." },
+  { id:"protocolo",   area:"meta",        title:"Protocolo",    body:"Respostas diretas. Pode corrigir o Vinical, mas executa mesmo assim se ele insistir no pedido. O sarcasmo vai se calibrando com o tempo, sem regra fixa. Autonomia: pode agir sozinho apenas em ações reversíveis, sem envolver terceiros, sem impacto financeiro e já validadas por repetição. Se envolver terceiros ou dinheiro, exige aprovação explícita do Vinical, sempre, sem exceção, mesmo que já tenha sido feito antes." },
+  { id:"inteli",      area:"metas",       title:"INTELI",       body:"Curto prazo (3-6 meses): passar na aprovação da INTELI, exame em outubro, mantendo uma base sólida de programação até lá." },
+  { id:"longo",       area:"metas",       title:"Longo Prazo",  body:"1-3 anos: consolidar carreira em desenvolvimento de software com foco em cibersegurança, através da INTELI." },
+  { id:"carreira",    area:"trabalho",    title:"Carreira",     body:"Ainda não trabalha formalmente. Frente profissional atual é estudar e tocar os projetos próprios." },
+  { id:"barbershop",  area:"projetos",    title:"Barbershop",   body:"Barbershop Management System — projeto em desenvolvimento ativo, roda em paralelo com a preparação para a INTELI." },
+  { id:"lox",         area:"projetos",    title:"Lox",          body:"Este assistente de voz com Second Brain, construído por ele mesmo." },
+  { id:"backlog",     area:"projetos",    title:"Backlog",      body:"Outros projetos ainda não iniciados; detalhes serão passados mais para frente." },
+  { id:"grana",       area:"financas",    title:"Independência",body:"Objetivo financeiro central: não depender dos pais." },
+  { id:"cs50",        area:"aprendizado", title:"CS50x",        body:"Cursando o CS50x de Harvard." },
+  { id:"fullstack",   area:"aprendizado", title:"Full-stack",   body:"Curso de desenvolvimento web full-stack da Jynx." },
+  { id:"matematica",  area:"aprendizado", title:"Matemática",   body:"Estudo de matemática voltado para a prova da INTELI." },
+  { id:"leitura",     area:"aprendizado", title:"Leitura",      body:"Lê livros com constância; no momento seguindo uma trilha de mentalista." },
+  { id:"rotina",      area:"saude",       title:"Rotina",       body:"Treina todos os dias, alimentação boa e sono regular." },
+  { id:"familia",     area:"relacoes",    title:"Família",      body:"Pais e irmãos." },
+  { id:"amigos",      area:"relacoes",    title:"Amigos",       body:"Melhores amigos de Recife; mais detalhes sobre eles virão depois." }
+];
+
+/* Teia de relações — "inteli" é o hub principal */
+const REL = [
+  ["perfil","foco"],["perfil","metodo"],["perfil","interesses"],["perfil","familia"],
+  ["perfil","rotina"],["perfil","inteli"],
+  ["inteli","matematica"],["inteli","longo"],["inteli","cs50"],["inteli","fullstack"],
+  ["inteli","metodo"],["inteli","carreira"],["inteli","rotina"],["inteli","barbershop"],
+  ["longo","foco"],["longo","carreira"],["longo","grana"],["longo","cs50"],
+  ["foco","cs50"],["foco","fullstack"],["foco","barbershop"],["foco","lox"],
+  ["carreira","grana"],["carreira","barbershop"],
+  ["barbershop","fullstack"],["barbershop","lox"],["barbershop","backlog"],["barbershop","grana"],
+  ["lox","protocolo"],["lox","backlog"],["lox","interesses"],
+  ["interesses","grana"],["interesses","leitura"],
+  ["metodo","rotina"],["metodo","matematica"],["metodo","leitura"],
+  ["leitura","protocolo"],["protocolo","metodo"],
+  ["familia","amigos"],["familia","grana"],["amigos","interesses"],
+  ["cs50","fullstack"],["rotina","longo"]
+];
+
+/* ══════════════════════════════════════════════════════════
+   ESTADO
+   ══════════════════════════════════════════════════════════ */
+let notes   = [];
+let history = [];
+let busy    = false;      // pensando ou falando → ignora o microfone
+let awake   = false;      // já ouviu a wake word
+let wantMic = false;      // usuário quer escuta contínua ligada
+let awakeTimer = null;
+let editing = null;
+
+const $ = id => document.getElementById(id);
+const el = {
+  boot:$("boot"), gate:$("gate"), app:$("app"), orb:$("orb"), status:$("status"),
+  uText:$("uText"), aText:$("aText"), key:$("key"), keyDot:$("keyDot"),
+  graph:$("graph"), legend:$("legend"), count:$("count"), modal:$("modal")
+};
+
+/* ══════════════════════════════════════════════════════════
+   PERSISTÊNCIA
+   ══════════════════════════════════════════════════════════ */
+function loadNotes(){
+  try{
+    const raw = localStorage.getItem("jarvis_notes");
+    if(raw){
+      const p = JSON.parse(raw);
+      if(Array.isArray(p) && p.length){ notes = p; return; }
+    }
+  }catch(e){}
+  notes = SEED_NOTES.map(n => Object.assign({}, n));
+  saveNotes();
+}
+function saveNotes(){
+  try{ localStorage.setItem("jarvis_notes", JSON.stringify(notes)); }catch(e){}
+}
+function getKey(){ try{ return localStorage.getItem("anthropic_key") || ""; }catch(e){ return ""; } }
+function setKey(v){ try{ localStorage.setItem("anthropic_key", v); }catch(e){} }
+
+/* ══════════════════════════════════════════════════════════
+   UTIL
+   ══════════════════════════════════════════════════════════ */
+const norm = s => (s||"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").trim();
+
+/* normaliza mantendo o mapa de índices para o texto original */
+function normMap(s){
+  let out = "", map = [];
+  for(let i = 0; i < s.length; i++){
+    const ch = s[i].toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+    for(let k = 0; k < ch.length; k++){ out += ch[k]; map.push(i); }
+  }
+  return { t:out, map:map };
+}
+/* devolve {found, rest} — rest é o que veio DEPOIS da wake word, no texto original */
+function splitWake(said){
+  const nm = normMap(said);
+  const w  = norm(CONFIG.wakeWord);
+  const at = nm.t.indexOf(w);
+  if(at === -1) return { found:false, rest:"" };
+  const end = at + w.length;
+  const oi  = end < nm.map.length ? nm.map[end] : said.length;
+  return { found:true, rest: said.slice(oi).replace(/^[\s,.;:!?…-]+/,"").trim() };
+}
+const esc  = s => String(s==null?"":s).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;");
+function setState(s){
+  el.orb.className = "orb-wrap " + (s||"");
+}
+function setStatus(t, kind){
+  el.status.textContent = t;
+  el.status.className = "status" + (kind ? " " + kind : "");
+}
+
+/* ══════════════════════════════════════════════════════════
+   SYSTEM PROMPT — identidade + regras + second brain + memória viva
+   ══════════════════════════════════════════════════════════ */
+function buildSystem(){
+  const byArea = {};
+  notes.forEach(n => { (byArea[n.area] = byArea[n.area] || []).push(n); });
+
+  let brain = "";
+  Object.keys(AREA).forEach(k => {
+    if(!byArea[k]) return;
+    brain += "\n[" + (AREA[k].label).toUpperCase() + "]\n";
+    byArea[k].forEach(n => { brain += "- " + n.title + ": " + n.body + "\n"; });
+  });
+
+  return [
+    "Você é " + CONFIG.name + ", o assistente pessoal de voz do " + CONFIG.address + ".",
+    "Sua personalidade é " + CONFIG.persona + ": tratamento impecável de mordomo britânico, precisão cirúrgica, e um sarcasmo seco e elegante aplicado com parcimônia — nunca grosseiro, nunca bobo.",
+    "Trate o usuário sempre por \"" + CONFIG.address + "\".",
+    "",
+    "REGRAS DE RESPOSTA:",
+    "- Responda SEMPRE em português do Brasil.",
+    "- Suas respostas são FALADAS em voz alta: use de 2 a 4 frases, curtas e diretas.",
+    "- Nada de emojis, nada de markdown, nada de listas numeradas, nada de asteriscos.",
+    "- Seja direto. Pode discordar e corrigir o " + CONFIG.address + ", mas se ele insistir no pedido, execute mesmo assim.",
+    "- Nunca invente fatos sobre a vida dele: use apenas o Second Brain abaixo.",
+    "",
+    "SECOND BRAIN — tudo que você sabe sobre o " + CONFIG.address + ":",
+    brain,
+    "Use esse contexto em TODAS as respostas: conecte o que ele perguntar com as metas, projetos, estudos, saúde e relações dele.",
+    "",
+    "AUTONOMIA (regra dele, inegociável): você pode agir sozinho apenas em ações reversíveis, que não envolvam terceiros e não tenham impacto financeiro, e que já tenham sido validadas por repetição. Qualquer coisa que envolva outra pessoa ou dinheiro exige aprovação explícita dele, sempre, mesmo que já tenha sido feita antes.",
+    "",
+    "PROTOCOLO DE MEMÓRIA VIVA:",
+    "Se o " + CONFIG.address + " revelar algo novo e duradouro sobre a vida dele, TERMINE a resposta com uma linha no formato EXATO:",
+    "[[SAVE:area|titulo|texto]]",
+    "onde area é uma de: metas, trabalho, projetos, financas, aprendizado, saude, relacoes, meta.",
+    "O titulo deve ter 1 ou 2 palavras. Se já existir uma nota com esse título, ela é atualizada; senão, uma nova nasce.",
+    "Inclua essa linha somente quando houver algo realmente novo e permanente — não para conversa passageira.",
+    "Nunca mencione, leia em voz alta ou explique essa linha."
+  ].join("\n");
+}
+
+/* ══════════════════════════════════════════════════════════
+   CÉREBRO — API da Anthropic
+   ══════════════════════════════════════════════════════════ */
+async function think(text){
+  const key = getKey();
+  if(!key){
+    reply("Preciso da chave da API, " + CONFIG.address + ". Cole no campo lá em cima e tente de novo.", true);
+    return;
+  }
+
+  busy = true;
+  setState("thinking");
+  setStatus("PROCESSANDO...", "live");
+  el.aText.textContent = "...";
+
+  history.push({ role:"user", content:text });
+  if(history.length > 20) history = history.slice(-20);
+
+  // a chamada de rede fica isolada no try: falha de fala não pode virar "erro de rede"
+  let out = null, fail = null;
+  try{
+    const res = await fetch("https://api.anthropic.com/v1/messages", {
+      method:"POST",
+      headers:{
+        "x-api-key": key,
+        "anthropic-version":"2023-06-01",
+        "anthropic-dangerous-direct-browser-access":"true",
+        "content-type":"application/json"
+      },
+      body: JSON.stringify({
+        model: CONFIG.model,
+        max_tokens: 400,
+        system: buildSystem(),
+        messages: history
+      })
+    });
+
+    if(!res.ok){
+      fail = "Recebi um erro " + res.status + " da API, " + CONFIG.address + ". Confira se a chave está correta e com créditos.";
+    }else{
+      const data = await res.json();
+      const t = data && data.content && data.content[0] && data.content[0].text;
+      if(t && t.trim()) out = t;
+      else fail = "A resposta veio vazia, " + CONFIG.address + ". Tente reformular o comando.";
+    }
+  }catch(err){
+    fail = "Não consegui conectar à rede, " + CONFIG.address + ". Verifique sua conexão.";
+  }
+
+  if(fail){ history.pop(); reply(fail, true); return; }
+
+  history.push({ role:"assistant", content:out });
+  const clean = harvest(out);            // remove [[SAVE:...]] e grava a nota
+  reply(clean.trim() || "Certo, " + CONFIG.address + ".");
+}
+
+/* Detecta [[SAVE:...]], cria/atualiza a nota e devolve o texto limpo */
+function harvest(raw){
+  const re = /\[\[SAVE:([a-z_]+)\|([^|]+)\|([\s\S]+?)\]\]/g;
+  let m, touched = null;
+  while((m = re.exec(raw)) !== null){
+    const area  = AREA[m[1]] ? m[1] : "meta";
+    const title = m[2].trim().slice(0,40);
+    const body  = m[3].trim();
+    if(!title || !body) continue;
+    const hit = notes.find(n => norm(n.title) === norm(title));
+    if(hit){ hit.body = body; hit.area = area; touched = hit.id; }
+    else{
+      const id = "n" + Date.now().toString(36) + Math.floor(Math.random()*900+100);
+      notes.push({ id:id, area:area, title:title, body:body });
+      touched = id;
+    }
+  }
+  if(touched){ saveNotes(); renderGraph(); flashNode(touched); }
+  return raw.replace(re, "");
+}
+
+/* ══════════════════════════════════════════════════════════
+   VOZ — STT
+   ══════════════════════════════════════════════════════════ */
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let rec = null;
+
+function initRec(){
+  if(!SR){ setStatus("NAVEGADOR SEM RECONHECIMENTO DE VOZ — USE O CAMPO DE TEXTO","bad"); return; }
+  rec = new SR();
+  rec.lang = "pt-BR";
+  rec.continuous = true;
+  rec.interimResults = false;
+
+  rec.onresult = function(ev){
+    if(busy) return;                                  // não se escuta falando
+    for(let i = ev.resultIndex; i < ev.results.length; i++){
+      if(!ev.results[i].isFinal) continue;
+      const said = (ev.results[i][0].transcript || "").trim();
+      if(said) handleSpeech(said);
+    }
+  };
+
+  rec.onerror = function(ev){
+    if(ev.error === "not-allowed" || ev.error === "service-not-allowed"){
+      wantMic = false;
+      setStatus("MICROFONE BLOQUEADO — LIBERE A PERMISSÃO NO NAVEGADOR","bad");
+      speak("O microfone está bloqueado, " + CONFIG.address + ". Libere a permissão do navegador e clique em falar.");
+    }
+  };
+
+  rec.onend = function(){
+    if(wantMic && !busy) startRec();                  // só reinicia quando está livre
+  };
+}
+
+function startRec(){
+  if(!rec || busy) return;
+  try{ rec.start(); }
+  catch(e){ /* "already started" — ignora */ }
+  if(!busy){ setState("listening"); setStatus(awake ? "OUVINDO SEU COMANDO..." : "AGUARDANDO \"" + CONFIG.wakeWord.toUpperCase() + "\"", "live"); }
+}
+function stopRec(){
+  if(!rec) return;
+  try{ rec.stop(); }catch(e){}
+}
+
+/* Wake word + roteamento da fala */
+function handleSpeech(said){
+  const wake = splitWake(said);
+
+  if(!awake){
+    if(!wake.found) return;                           // sem wake word → ignora
+    setAwake(true);
+    if(wake.rest.length > 1){ ask(wake.rest); }       // já veio com comando colado
+    else{
+      el.uText.textContent = said;
+      reply("Às ordens, " + CONFIG.address + ".");    // só chamou → capta a próxima frase
+    }
+    return;
+  }
+
+  // já ativado: se repetir a wake word, tira ela do comando
+  let cmd = said;
+  if(wake.found){
+    cmd = wake.rest;
+    if(cmd.length < 2){ el.uText.textContent = said; reply("Estou aqui, " + CONFIG.address + "."); return; }
+  }
+  ask(cmd);
+}
+
+function setAwake(v){
+  awake = v;
+  clearTimeout(awakeTimer);
+  if(v){
+    awakeTimer = setTimeout(function(){
+      awake = false;
+      if(wantMic && !busy) setStatus("AGUARDANDO \"" + CONFIG.wakeWord.toUpperCase() + "\"", "live");
+    }, 60000);                                        // 60s de conversa livre
+  }
+}
+
+function ask(text){
+  el.uText.textContent = text;
+  setAwake(true);
+  think(text);
+}
+
+/* ══════════════════════════════════════════════════════════
+   VOZ — TTS
+   ══════════════════════════════════════════════════════════ */
+let voices = [], chosen = null;
+const FEM = ["maria","luciana","francisca","fernanda","helena","camila","joana","vitoria","ines","catarina","google portugu","female","mulher"];
+const MAS = ["daniel","ricardo","felipe","joaquim","eddy","reed","rocko","male","homem"];
+
+function loadVoices(){
+  voices = window.speechSynthesis ? (window.speechSynthesis.getVoices() || []) : [];
+  const pt = voices.filter(v => /pt[-_]?BR/i.test(v.lang)).concat(voices.filter(v => /^pt/i.test(v.lang) && !/pt[-_]?BR/i.test(v.lang)));
+  if(!pt.length){ chosen = null; return; }
+  const want = CONFIG.voiceGender === "feminina" ? FEM : MAS;
+  const avoid = CONFIG.voiceGender === "feminina" ? MAS : FEM;
+  chosen = pt.find(v => want.some(k => v.name.toLowerCase().indexOf(k) !== -1))
+        || pt.find(v => !avoid.some(k => v.name.toLowerCase().indexOf(k) !== -1))
+        || pt[0];
+}
+if(window.speechSynthesis){
+  loadVoices();
+  window.speechSynthesis.onvoiceschanged = loadVoices;
+}
+
+function speak(text, after){
+  if(!window.speechSynthesis){ busy = false; if(after) after(); return; }
+  busy = true;                                        // trava ANTES de parar o mic:
+  window.speechSynthesis.cancel();                    // o onend do recognition não pode religar
+  stopRec();                                          // silencia o microfone enquanto fala
+  setState("speaking");
+  setStatus("FALANDO...", "live");
+
+  const u = new SpeechSynthesisUtterance(text);
+  u.lang = "pt-BR";
+  u.rate = 1.02; u.pitch = CONFIG.voiceGender === "feminina" ? 1.05 : .92; u.volume = 1;
+  if(chosen) u.voice = chosen;
+
+  const done = function(){
+    busy = false;
+    if(after) after();
+    if(wantMic){ setState("listening"); startRec(); }
+    else{ setState(""); setStatus("OCIOSO"); }
+  };
+  u.onend = done;
+  u.onerror = done;
+  // se a síntese falhar, o busy NUNCA pode ficar travado
+  try{ window.speechSynthesis.speak(u); }
+  catch(e){ setStatus("FALHA NA SÍNTESE DE VOZ","bad"); done(); return; }
+
+  // trava de segurança: se o navegador engasgar, libera em 25s
+  setTimeout(function(){ if(busy && window.speechSynthesis && !window.speechSynthesis.speaking) done(); }, 25000);
+}
+
+function reply(text, bad){
+  el.aText.textContent = text;
+  if(bad) setStatus("ERRO", "bad");
+  speak(text);
+}
+
+function shutUp(){
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  busy = false;
+  if(wantMic){ setState("listening"); startRec(); }
+  else{ setState(""); setStatus("OCIOSO"); }
+}
+
+/* ══════════════════════════════════════════════════════════
+   SECOND BRAIN — GRAFO NEURAL
+   ══════════════════════════════════════════════════════════ */
+const W = 1000, H = 540, CX = 500, CY = 268, RX = 342, RY = 188;
+let pulses = [], layout = {}, raf = null;
+
+function renderGraph(){
+  const list = notes;
+  const N = list.length;
+  layout = {};
+
+  // grau de cada nó (para dimensionar os hubs)
+  const deg = {};
+  list.forEach(n => deg[n.id] = 0);
+  const edges = REL.filter(p => deg[p[0]] !== undefined && deg[p[1]] !== undefined);
+  edges.forEach(p => { deg[p[0]]++; deg[p[1]]++; });
+
+  // posições em elipse ao redor do núcleo
+  list.forEach(function(n, i){
+    const a = (i / N) * Math.PI * 2 - Math.PI / 2;
+    layout[n.id] = {
+      x: CX + Math.cos(a) * RX,
+      y: CY + Math.sin(a) * RY,
+      r: 11 + Math.min(deg[n.id] || 0, 9) * 2.1,
+      c: (AREA[n.area] || AREA.meta).color
+    };
+  });
+
+  /* ── defs ── */
+  let s = '<defs>' +
+    '<linearGradient id="gEdge" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="#8b7cff" stop-opacity=".85"/>' +
+      '<stop offset="100%" stop-color="#2dd4ff" stop-opacity=".85"/>' +
+    '</linearGradient>' +
+    '<radialGradient id="gCore" cx="38%" cy="32%">' +
+      '<stop offset="0%" stop-color="#e9e4ff"/>' +
+      '<stop offset="45%" stop-color="#8b7cff"/>' +
+      '<stop offset="100%" stop-color="#2b1d70"/>' +
+    '</radialGradient>' +
+    '<filter id="glow" x="-140%" y="-140%" width="380%" height="380%">' +
+      '<feGaussianBlur stdDeviation="7" result="b"/>' +
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+    '</filter>' +
+    '<filter id="glowS" x="-160%" y="-160%" width="420%" height="420%">' +
+      '<feGaussianBlur stdDeviation="3.4" result="b"/>' +
+      '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>' +
+    '</filter>' +
+  '</defs>';
+
+  /* ── raios do núcleo até cada nó ── */
+  s += '<g opacity=".28">';
+  list.forEach(function(n){
+    const p = layout[n.id];
+    s += '<line x1="' + CX + '" y1="' + CY + '" x2="' + p.x.toFixed(1) + '" y2="' + p.y.toFixed(1) +
+         '" stroke="' + p.c + '" stroke-width="1"/>';
+  });
+  s += '</g>';
+
+  /* ── arestas (curvas de Bézier puxadas ~35% pro centro) ── */
+  const paths = [];
+  edges.forEach(function(p, i){
+    const A = layout[p[0]], B = layout[p[1]];
+    if(!A || !B) return;
+    const mx = (A.x + B.x) / 2, my = (A.y + B.y) / 2;
+    const C = { x: mx + (CX - mx) * .35, y: my + (CY - my) * .35 };
+    paths.push({ A:A, B:B, C:C });
+    s += '<path d="M' + A.x.toFixed(1) + ' ' + A.y.toFixed(1) +
+         ' Q' + C.x.toFixed(1) + ' ' + C.y.toFixed(1) + ' ' + B.x.toFixed(1) + ' ' + B.y.toFixed(1) +
+         '" fill="none" stroke="url(#gEdge)" stroke-width="1.25" opacity=".5"' +
+         ' stroke-dasharray="7 13" stroke-linecap="round"' +
+         ' style="animation:dashmove ' + (5 + (i % 7) * .8).toFixed(1) + 's linear infinite"/>';
+  });
+
+  /* ── núcleo pulsante ── */
+  s += '<g style="transform-origin:' + CX + 'px ' + CY + 'px;animation:corepulse 3.1s ease-in-out infinite">' +
+    '<circle cx="' + CX + '" cy="' + CY + '" r="52" fill="none" stroke="#8b7cff" stroke-opacity=".35" stroke-width="1"/>' +
+    '<circle cx="' + CX + '" cy="' + CY + '" r="38" fill="url(#gCore)" filter="url(#glow)"/>' +
+    '<text x="' + CX + '" y="' + (CY + 9) + '" text-anchor="middle" font-size="26">&#129504;</text>' +
+  '</g>';
+
+  /* ── nós ── */
+  list.forEach(function(n){
+    const p = layout[n.id];
+    const lbl = esc(n.title).slice(0,16);
+
+    // rótulo empurrado radialmente pra fora do núcleo — evita colisão com os nós vizinhos
+    const dx = p.x - CX, dy = p.y - CY;
+    const m  = Math.sqrt(dx * dx + dy * dy) || 1;
+    const ux = dx / m, uy = dy / m;
+    let tx, ty, anchor;
+    if(ux > .45){        anchor = "start";  tx = p.x + p.r + 9;  ty = p.y + 4; }
+    else if(ux < -.45){  anchor = "end";    tx = p.x - p.r - 9;  ty = p.y + 4; }
+    else{                anchor = "middle"; tx = p.x;
+                         ty = uy < 0 ? p.y - p.r - 11 : p.y + p.r + 18; }
+
+    s += '<g class="gnode" data-note="' + esc(n.id) + '">' +
+      '<circle cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + (p.r + 9).toFixed(1) + '"' +
+        ' fill="none" stroke="' + p.c + '" stroke-width="1.1"' +
+        ' style="transform-origin:' + p.x.toFixed(1) + 'px ' + p.y.toFixed(1) + 'px;animation:breathe ' +
+        (2.6 + Math.random() * 2).toFixed(2) + 's ease-in-out infinite"/>' +
+      '<circle class="ncore" cx="' + p.x.toFixed(1) + '" cy="' + p.y.toFixed(1) + '" r="' + p.r.toFixed(1) + '"' +
+        ' fill="' + p.c + '" fill-opacity=".92" stroke="' + p.c + '" stroke-width="1" filter="url(#glowS)"/>' +
+      '<circle cx="' + (p.x - p.r * .3).toFixed(1) + '" cy="' + (p.y - p.r * .32).toFixed(1) + '" r="' + (p.r * .28).toFixed(1) + '" fill="#fff" fill-opacity=".55"/>' +
+      '<text x="' + tx.toFixed(1) + '" y="' + ty.toFixed(1) + '" text-anchor="' + anchor + '"' +
+        ' font-size="12" font-family="ui-monospace,Menlo,monospace" fill="#c8d6e6" letter-spacing=".6"' +
+        ' stroke="#04070d" stroke-width="3" paint-order="stroke" stroke-linejoin="round">' + lbl + '</text>' +
+    '</g>';
+  });
+
+  /* ── pulsos de sinapse ── */
+  pulses = [];
+  const nP = Math.min(12, Math.max(4, paths.length));
+  for(let i = 0; i < nP; i++){
+    pulses.push({ e: Math.floor(Math.random() * paths.length), t: Math.random(), sp: .0035 + Math.random() * .0045 });
+    s += '<circle id="pz' + i + '" r="2.9" fill="#ffffff" filter="url(#glowS)" opacity="0"/>';
+  }
+
+  /* CRÍTICO: monta a string inteira do <svg> e injeta no innerHTML de uma DIV.
+     Injetar no innerHTML do próprio <svg> quebra o namespace em Safari/webviews. */
+  el.graph.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet">' + s + '</svg>';
+
+  /* anima os pulsos */
+  const dots = pulses.map(function(_, i){ return document.getElementById("pz" + i); });
+  if(raf) cancelAnimationFrame(raf);
+  (function tick(){
+    for(let i = 0; i < pulses.length; i++){
+      const p = pulses[i], d = dots[i], path = paths[p.e];
+      if(!d || !path) continue;
+      p.t += p.sp;
+      if(p.t >= 1){ p.t = 0; p.e = Math.floor(Math.random() * paths.length); }
+      const t = p.t, u = 1 - t;
+      const x = u * u * path.A.x + 2 * u * t * path.C.x + t * t * path.B.x;
+      const y = u * u * path.A.y + 2 * u * t * path.C.y + t * t * path.B.y;
+      d.setAttribute("cx", x.toFixed(1));
+      d.setAttribute("cy", y.toFixed(1));
+      d.setAttribute("opacity", (Math.sin(t * Math.PI) * .95).toFixed(2));
+    }
+    raf = requestAnimationFrame(tick);
+  })();
+
+  renderLegend();
+  renderCount();
+}
+
+function flashNode(id){
+  const g = el.graph.querySelector('[data-note="' + id + '"]');
+  if(!g) return;
+  g.classList.remove("flash");
+  void g.getBoundingClientRect();
+  g.classList.add("flash");
+}
+
+function renderCount(){
+  const areas = {};
+  notes.forEach(n => areas[n.area] = 1);
+  el.count.textContent = notes.length + " notas · " + Object.keys(areas).length + " áreas";
+}
+
+function renderLegend(){
+  const seen = [];
+  notes.forEach(n => { if(seen.indexOf(n.area) === -1) seen.push(n.area); });
+  let h = "";
+  seen.forEach(function(a){
+    const A = AREA[a] || AREA.meta;
+    h += '<span class="lg"><i style="background:' + A.color + ';color:' + A.color + '"></i>' + esc(A.label).toUpperCase() + '</span>';
+  });
+  h += '<span class="lg-ok">✓ contexto injetado em todos os comandos do ' + esc(CONFIG.name) + '</span>';
+  el.legend.innerHTML = h;
+}
+
+/* ══════════════════════════════════════════════════════════
+   EDITOR DE NOTA
+   ══════════════════════════════════════════════════════════ */
+(function fillAreas(){
+  let h = "";
+  Object.keys(AREA).forEach(k => { h += '<option value="' + k + '">' + esc(AREA[k].label) + '</option>'; });
+  $("mArea").innerHTML = h;
+})();
+
+function openEditor(id){
+  editing = id;
+  const n = id ? notes.find(x => x.id === id) : null;
+  $("mTtl").textContent = n ? "EDITAR NOTA" : "NOVA NOTA";
+  $("mTitle").value = n ? n.title : "";
+  $("mArea").value  = n ? n.area  : "meta";
+  $("mBody").value  = n ? n.body  : "";
+  $("mDel").style.display = n ? "" : "none";
+  el.modal.classList.add("on");
+  setTimeout(() => $("mTitle").focus(), 60);
+}
+function closeEditor(){ el.modal.classList.remove("on"); editing = null; }
+
+$("mSave").onclick = function(){
+  const t = $("mTitle").value.trim(), b = $("mBody").value.trim(), a = $("mArea").value;
+  if(!t || !b){ $("mTitle").focus(); return; }
+  if(editing){
+    const n = notes.find(x => x.id === editing);
+    if(n){ n.title = t; n.body = b; n.area = a; }
+  }else{
+    editing = "n" + Date.now().toString(36);
+    notes.push({ id:editing, area:a, title:t, body:b });
+  }
+  saveNotes();
+  const id = editing;
+  closeEditor();
+  renderGraph();
+  flashNode(id);
+};
+$("mDel").onclick = function(){
+  if(editing) notes = notes.filter(x => x.id !== editing);
+  saveNotes(); closeEditor(); renderGraph();
+};
+$("mCancel").onclick = closeEditor;
+el.modal.addEventListener("click", e => { if(e.target === el.modal) closeEditor(); });
+
+/* clique nos nós (delegação — o SVG é recriado a cada render) */
+el.graph.addEventListener("click", function(e){
+  const g = e.target.closest ? e.target.closest("[data-note]") : null;
+  if(g) openEditor(g.getAttribute("data-note"));
+});
+
+$("btnAdd").onclick    = () => openEditor(null);
+$("btnReload").onclick = () => { loadNotes(); renderGraph(); };
+
+/* ══════════════════════════════════════════════════════════
+   CONTROLES
+   ══════════════════════════════════════════════════════════ */
+$("btnKey").onclick = function(){
+  const v = el.key.value.trim();
+  setKey(v);
+  el.keyDot.className = "dot" + (v ? " ok" : "");
+  setStatus(v ? "CHAVE SALVA" : "CHAVE REMOVIDA", v ? "live" : "bad");
+};
+$("btnStop").onclick = shutUp;
+$("btnMic").onclick  = function(){
+  if(wantMic){
+    wantMic = false; stopRec(); setState(""); setStatus("MICROFONE DESLIGADO");
+  }else{
+    wantMic = true; setAwake(true); startRec();
+  }
+};
+el.orb.onclick = function(){ if(!wantMic){ wantMic = true; } setAwake(true); startRec(); };
+
+$("typeForm").onsubmit = function(e){
+  e.preventDefault();
+  const v = $("typeIn").value.trim();
+  if(!v) return;
+  $("typeIn").value = "";
+  if(window.speechSynthesis) window.speechSynthesis.cancel();
+  busy = false;
+  ask(v);
+};
+
+/* ══════════════════════════════════════════════════════════
+   ARRANQUE — BOOT → ATIVAÇÃO → APP
+   ══════════════════════════════════════════════════════════ */
+loadNotes();
+initRec();
+
+(function primeKey(){
+  const k = getKey();
+  if(k){ el.key.value = k; el.keyDot.className = "dot ok"; }
+})();
+
+setTimeout(function(){
+  el.boot.classList.add("hide");
+  el.gate.classList.remove("hide");
+}, 2200);
+
+$("btnGo").onclick = function(){
+  el.gate.classList.add("hide");
+  el.boot.classList.add("hide");
+  el.app.classList.add("on");
+  renderGraph();
+  loadVoices();
+  wantMic = true;
+  setAwake(true);
+  // o clique é o gesto do usuário: libera áudio + microfone de uma vez
+  speak("Sistemas online. Estou ouvindo, " + CONFIG.address + ".");
+  setTimeout(function(){ if(!busy) startRec(); }, 400);
+};
+
+window.addEventListener("beforeunload", function(){ if(window.speechSynthesis) window.speechSynthesis.cancel(); });
+</script>
+</body>
+</html>
