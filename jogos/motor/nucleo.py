@@ -74,6 +74,25 @@ def colide(a, b):
     )
 
 
+def desenhar_joystick(destino, ret, fundo=(16, 18, 34)):
+    """Joystick de fliperama, desenhado em 32x32 e ampliado para `ret`.
+
+    Serve tanto para a tela inicial quanto para gerar o icone do executavel,
+    entao a arte fica num lugar so.
+    """
+    arte = pygame.Surface((32, 32))
+    arte.fill(fundo)
+    pygame.draw.rect(arte, CORES["amarelo"], (1, 1, 30, 30), 1)
+    pygame.draw.rect(arte, CORES["cinza_escuro"], (6, 21, 20, 7))   # base
+    pygame.draw.rect(arte, CORES["cinza"], (14, 10, 4, 12))         # haste
+    pygame.draw.circle(arte, CORES["vermelho"], (16, 9), 5)         # manopla
+    pygame.draw.circle(arte, CORES["rosa"], (14, 7), 2)             # brilho
+    pygame.draw.rect(arte, CORES["verde"], (7, 23, 4, 3))           # botao
+    pygame.draw.rect(arte, CORES["azul"], (21, 23, 4, 3))           # botao
+    destino.blit(pygame.transform.scale(arte, (ret.w, ret.h)), ret.topleft)
+    return arte
+
+
 class JogoBase:
     """Contrato que todo jogo da pasta `titulos` precisa cumprir.
 

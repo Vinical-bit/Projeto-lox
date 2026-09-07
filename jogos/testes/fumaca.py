@@ -73,6 +73,40 @@ def rodar_um(Classe, modo_crianca):
     return fins
 
 
+def testar_telas():
+    """Percorre abertura -> menu -> jogo -> menu -> abertura, sem tela."""
+    import main as app
+
+    fliperama = app.Fliperama(escala=2, modo_crianca=True, com_som=False)
+    ent = EntradaFalsa()
+    fliperama.ent = ent
+
+    assert fliperama.estado == "abertura", "deveria comecar na tela inicial"
+    fliperama._abertura(1 / 60.0)
+
+    ent.confirmar = True                      # aperta INICIAR
+    fliperama._abertura(1 / 60.0)
+    assert fliperama.estado == "menu", "INICIAR nao levou ao menu"
+
+    for indice in range(len(app.JOGOS)):
+        ent.confirmar = False
+        fliperama.selecao = indice
+        fliperama._menu(1 / 60.0)
+        fliperama._abrir(indice)
+        for _ in range(120):
+            ent.sortear()
+            fliperama._partida(1 / 60.0)
+        ent.voltar = True                     # ESC volta ao menu
+        fliperama._partida(1 / 60.0)
+        ent.voltar = False
+        assert fliperama.jogo is None, f"ESC nao saiu de {app.JOGOS[indice].nome}"
+
+    ent.voltar = True                         # ESC no menu volta a abertura
+    fliperama._menu(1 / 60.0)
+    assert fliperama.estado == "abertura", "ESC no menu nao voltou para a tela inicial"
+    return len(app.JOGOS)
+
+
 def main():
     pygame.init()
     pygame.display.set_mode((32, 32))
@@ -88,6 +122,15 @@ def main():
                 print(f"FALHA {Classe.nome:<14} [{etiqueta}] {type(erro).__name__}: {erro}")
                 import traceback
                 traceback.print_exc()
+    try:
+        quantos = testar_telas()
+        print(f"ok   telas          [ambos  ] abertura, menu e {quantos} jogos abrem e fecham")
+    except Exception as erro:  # noqa: BLE001 - e um teste de fumaca
+        falhas += 1
+        print(f"FALHA telas          {type(erro).__name__}: {erro}")
+        import traceback
+        traceback.print_exc()
+
     pygame.quit()
     if falhas:
         print(f"\n{falhas} falha(s)")

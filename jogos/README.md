@@ -22,8 +22,11 @@ o PyInstaller e produz `dist\Fliperama.exe` — um arquivo único, com ícone, q
 roda em qualquer Windows **sem Python instalado**. Leva uns minutos e só
 precisa ser feito uma vez.
 
-**3. Sem instalar nada:** na aba *Actions* do GitHub, rode o fluxo
-*Executavel do fliperama* e baixe o `Fliperama.exe` pronto em *Artifacts*.
+**3. Sem instalar nada:** o `Fliperama.exe` já é construído automaticamente
+a cada envio para o GitHub. Vá em
+[Actions](https://github.com/Vinical-bit/Projeto-lox/actions/workflows/executavel.yml),
+abra a execução mais recente e baixe **Fliperama-Windows** em *Artifacts*.
+O arquivo vem num `.zip`; extraia e clique duas vezes no `.exe`.
 
 ## Como rodar pelo terminal
 
@@ -55,6 +58,10 @@ python main.py --sem-som
 | **Rio Perigoso** | Subir o rio, atirar e reabastecer | ← → (↑↓ mudam a velocidade), espaço atira |
 | **Submarino** | Resgatar mergulhadores e subir para respirar | Setas, espaço atira |
 | **Boxe** | Um contra um, de cima | Setas + espaço (2º jogador: WASD + Shift) |
+
+O programa abre numa **tela inicial** com o botão **INICIAR** (clique ou
+espaço). Dali se vai ao menu dos quatro jogos; ESC sempre volta um passo —
+do jogo para o menu, do menu para a tela inicial, e da tela inicial fecha.
 
 Comece pela **Galinha**: são só duas teclas e ninguém morre. É o melhor
 primeiro contato com um controle.

@@ -5,12 +5,13 @@ Atalhos:   setas = escolher/jogar | espaco = confirmar/atirar | ESC = voltar
            C = modo crianca | P = pausa | R = recomecar | F = tela cheia
 """
 
+import math
 import sys
 
 import pygame
 
 from motor import entrada as mod_entrada
-from motor.nucleo import ALTURA, CORES, LARGURA, fonte, texto
+from motor.nucleo import ALTURA, CORES, LARGURA, desenhar_joystick, texto
 from motor.som import Som
 from titulos import boxe, galinha, rio, submarino
 
@@ -42,6 +43,8 @@ class Fliperama:
         self.ent.abrir_controles()
         self.modo_crianca = modo_crianca
         self.selecao = 0
+        self.estado = "abertura"
+        self.relogio_abertura = 0.0
         self.jogo = None
         self.pausado = False
         self.tela_cheia = False
@@ -63,7 +66,9 @@ class Fliperama:
             dt = min(0.05, self.relogio.tick(FPS) / 1000.0)
             self._eventos()
             self.ent.atualizar()
-            if self.jogo is None:
+            if self.estado == "abertura":
+                self._abertura(dt)
+            elif self.jogo is None:
                 self._menu(dt)
             else:
                 self._partida(dt)
@@ -83,13 +88,17 @@ class Fliperama:
                     if self.jogo:
                         self._abrir(self.selecao)
                 elif e.key in (pygame.K_UP, pygame.K_DOWN, pygame.K_LEFT, pygame.K_RIGHT) \
-                        and self.jogo is None:
+                        and self.estado == "menu" and self.jogo is None:
                     self._mover_selecao(e.key)
-            elif e.type == pygame.MOUSEBUTTONDOWN and self.jogo is None:
-                for i, ret in enumerate(self._cartoes()):
-                    if ret.collidepoint(e.pos):
-                        self.selecao = i
-                        self._abrir(i)
+            elif e.type == pygame.MOUSEBUTTONDOWN:
+                if self.estado == "abertura":
+                    if self._botao_iniciar().collidepoint(e.pos):
+                        self._comecar()
+                elif self.jogo is None:
+                    for i, ret in enumerate(self._cartoes()):
+                        if ret.collidepoint(e.pos):
+                            self.selecao = i
+                            self._abrir(i)
 
     def _alternar_tela_cheia(self):
         self.tela_cheia = not self.tela_cheia
@@ -110,8 +119,72 @@ class Fliperama:
         self.som.tocar("menu")
 
     def _abrir(self, indice):
+        self.estado = "menu"
         self.jogo = JOGOS[indice](modo_crianca=self.modo_crianca, som=self.som)
         self.pausado = False
+
+    def _comecar(self):
+        self.estado = "menu"
+        self.som.tocar("menu")
+
+    # --- tela inicial -----------------------------------------------------
+    def _botao_iniciar(self):
+        larg, alt = self.tela.get_size()
+        return pygame.Rect(0, 0, int(larg * 0.56), int(alt * 0.11)) \
+            .move(int(larg * 0.22), int(alt * 0.63))
+
+    def _abertura(self, dt):
+        if self.ent.voltar:
+            self.rodando = False
+            return
+        if self.ent.confirmar:
+            self._comecar()
+            return
+
+        self.relogio_abertura += dt
+        larg, alt = self.tela.get_size()
+        pulso = (math.sin(self.relogio_abertura * 3) + 1) / 2
+
+        self.tela.fill((16, 18, 34))
+        for i in range(0, larg, 8):   # faixa de listras, so enfeite
+            cor = CORES["azul_escuro"] if (i // 8) % 2 else (22, 26, 48)
+            pygame.draw.rect(self.tela, cor, (i, 0, 8, int(alt * 0.02)))
+            pygame.draw.rect(self.tela, cor, (i, alt - int(alt * 0.02), 8, int(alt * 0.02)))
+
+        texto(self.tela, "FLIPERAMA", larg // 2, int(alt * 0.11),
+              CORES["amarelo"], int(alt * 0.10), centro=True)
+        texto(self.tela, "DE CASA", larg // 2, int(alt * 0.19),
+              CORES["laranja"], int(alt * 0.07), centro=True)
+
+        lado = int(alt * 0.26)
+        desenhar_joystick(self.tela, pygame.Rect(larg // 2 - lado // 2, int(alt * 0.28), lado, lado))
+
+        botao = self._botao_iniciar()
+        pygame.draw.rect(self.tela, (30, 34, 60), botao, border_radius=12)
+        pygame.draw.rect(self.tela, CORES["verde"], botao, 3 + int(pulso * 4), border_radius=12)
+        texto(self.tela, "INICIAR", botao.centerx, botao.centery,
+              CORES["branco"] if pulso > 0.3 else CORES["verde"],
+              int(botao.h * 0.62), centro=True)
+
+        texto(self.tela, "aperte ESPACO ou clique em INICIAR", larg // 2, int(alt * 0.78),
+              CORES["cinza"], int(alt * 0.030), centro=True)
+
+        # os quatro jogos aparecendo embaixo, so para dar gosto
+        lado_icone = int(alt * 0.075)
+        total = len(self.icones) * lado_icone + (len(self.icones) - 1) * 12
+        x = larg // 2 - total // 2
+        for i, icone in enumerate(self.icones):
+            destaque = int(self.relogio_abertura * 1.5) % len(self.icones) == i
+            mini = pygame.transform.scale(icone, (int(lado_icone * 0.8), lado_icone))
+            ret = mini.get_rect(topleft=(x + i * (lado_icone + 12), int(alt * 0.83)))
+            if destaque:
+                pygame.draw.rect(self.tela, CORES["amarelo"], ret.inflate(6, 6), 2)
+            self.tela.blit(mini, ret)
+
+        modo = "MODO CRIANCA LIGADO" if self.modo_crianca else "MODO ORIGINAL"
+        texto(self.tela, f"{modo}  -  tecla C muda", larg // 2, int(alt * 0.955),
+              CORES["verde"] if self.modo_crianca else CORES["laranja"],
+              int(alt * 0.028), centro=True)
 
     # --- menu -------------------------------------------------------------
     def _cartoes(self):
@@ -131,7 +204,7 @@ class Fliperama:
 
     def _menu(self, dt):
         if self.ent.voltar:
-            self.rodando = False
+            self.estado = "abertura"
         if self.ent.confirmar:
             self._abrir(self.selecao)
             return
@@ -160,7 +233,7 @@ class Fliperama:
             texto(self.tela, classe.ajuda, ret.centerx, int(ret.bottom - ret.h * 0.07),
                   CORES["cinza"], int(ret.h * 0.085), centro=True)
 
-        texto(self.tela, "SETAS escolhem - ESPACO joga - C muda o modo - ESC sai",
+        texto(self.tela, "SETAS escolhem - ESPACO joga - C muda o modo - ESC volta",
               larg // 2, int(alt * 0.94), CORES["cinza"], int(alt * 0.028), centro=True)
 
     # --- partida ----------------------------------------------------------
