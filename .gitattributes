@@ -1,2 +1,10 @@
 # Auto detect text files and perform LF normalization
 * text=auto
+
+# scripts do Windows precisam de quebra de linha CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# imagens e icones nao devem ser normalizados
+*.ico binary
+*.png binary

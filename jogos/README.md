@@ -7,13 +7,33 @@ oficina: dá para abrir o código, mudar um número e ver o efeito na hora.
 Tudo é desenhado numa telinha de **160x210 pixels** — a mesma proporção do
 Atari — e depois ampliada. É por isso que o visual é quadradão de propósito.
 
-## Como rodar
+## Como abrir (Windows)
+
+Três caminhos, do mais rápido ao mais definitivo:
+
+**1. Clique duas vezes em `jogar.bat`.** Ele acha o Python, instala o pygame
+na primeira vez e abre o menu. Dentro de `atalhos/` tem um `.bat` por jogo —
+`galinha.bat`, `rio.bat`, `submarino.bat`, `boxe.bat`. Clique com o botão
+direito em qualquer um deles > *Enviar para* > *Área de trabalho*, e a criança
+abre o jogo dela sem passar pelo menu.
+
+**2. Gere o executável:** clique duas vezes em `construir_exe.bat`. Ele baixa
+o PyInstaller e produz `dist\Fliperama.exe` — um arquivo único, com ícone, que
+roda em qualquer Windows **sem Python instalado**. Leva uns minutos e só
+precisa ser feito uma vez.
+
+**3. Sem instalar nada:** na aba *Actions* do GitHub, rode o fluxo
+*Executavel do fliperama* e baixe o `Fliperama.exe` pronto em *Artifacts*.
+
+## Como rodar pelo terminal
 
 ```bash
 cd jogos
 pip install -r requirements.txt
 python main.py
 ```
+
+No Linux e no macOS use `./jogar.sh` (uma vez: `chmod +x jogar.sh`).
 
 Atalhos para abrir direto num jogo (útil para deixar um atalho na área de
 trabalho da criança):
@@ -123,6 +143,10 @@ que ele não quebra sozinho. Rode isso depois de mexer em qualquer coisa.
 
 ```
 jogos/
+├── jogar.bat          abre o menu (clique duplo no Windows)
+├── construir_exe.bat  gera o Fliperama.exe
+├── atalhos/           um .bat por jogo, para atalho na área de trabalho
+├── ferramentas/       gerador do icone.ico
 ├── main.py            menu e laço principal
 ├── motor/
 │   ├── nucleo.py      resolução, cores, classe base, desenho

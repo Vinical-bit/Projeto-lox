@@ -1,0 +1,41 @@
+name: Executavel do fliperama
+
+# Gera o Fliperama.exe (Windows) sem precisar instalar nada no seu computador.
+# Depois de rodar, baixe em: aba Actions > ultima execucao > Artifacts.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "jogos/**"
+      - ".github/workflows/executavel.yml"
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar dependencias
+        run: pip install pygame pyinstaller
+
+      - name: Testar os jogos sem tela
+        working-directory: jogos
+        env:
+          SDL_VIDEODRIVER: dummy
+          SDL_AUDIODRIVER: dummy
+        run: python testes/fumaca.py
+
+      - name: Construir o executavel
+        working-directory: jogos
+        run: >
+          pyinstaller --noconfirm --onefile --windowed --clean
+          --name Fliperama --icon icone.ico main.py
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Fliperama-Windows
+          path: jogos/dist/Fliperama.exe
